@@ -64,6 +64,7 @@ class CausalSelfAttention(nn.Module):
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.head_dim = self.n_embd // self.n_head
+        self.window_size = config.window_size
         assert self.n_embd % self.n_head == 0
         # key, query, value projections for all heads, but in a batch
         self.c_attn = nn.Linear(self.n_embd, 3 * self.n_embd, bias=False)
@@ -84,9 +85,21 @@ class CausalSelfAttention(nn.Module):
         cos, sin = self.rotary(q)
         q = apply_rotary_emb(q, cos, sin)
         k = apply_rotary_emb(k, cos, sin)
-        y = F.scaled_dot_product_attention(
-            q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), is_causal=True
-        )
+        if self.window_size > 0:
+            # sliding window causal mask
+            mask = torch.ones(T, T, dtype=torch.bool, device=x.device)
+            mask = torch.tril(mask)  # causal
+            mask = torch.triu(mask, diagonal=-(self.window_size - 1))  # window
+            attn_bias = torch.zeros(T, T, device=x.device, dtype=q.dtype)
+            attn_bias.masked_fill_(~mask, float('-inf'))
+            y = F.scaled_dot_product_attention(
+                q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2),
+                attn_mask=attn_bias
+            )
+        else:
+            y = F.scaled_dot_product_attention(
+                q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), is_causal=True
+            )
         y = (
             y.transpose(1, 2).contiguous().view(B, T, C)
         )  # re-assemble all head outputs side by side
@@ -133,6 +146,7 @@ class GPTConfig:
     n_layer: int = 12
     n_head: int = 12
     n_embd: int = 768
+    window_size: int = 0  # 0 means full causal attention
 
 
 class GPT(nn.Module):
@@ -383,6 +397,12 @@ if __name__ == "__main__":
         action="store_true",
         help="log to wandb",
     )
+    parser.add_argument(
+        "--window_size",
+        type=int,
+        default=0,
+        help="sliding window attention size (0 = full causal attention)",
+    )
     args = parser.parse_args()
 
     # args error checking and convenience variables
@@ -439,11 +459,11 @@ if __name__ == "__main__":
     num_vocab = 50257
     model_config = {
         "d12": GPTConfig(
-            vocab_size=num_vocab, n_layer=12, n_head=12, n_embd=768
+            vocab_size=num_vocab, n_layer=12, n_head=12, n_embd=768, window_size=args.window_size
         ),  # 124M GPT-2
-        "d24": GPTConfig(vocab_size=num_vocab, n_layer=24, n_head=16, n_embd=1024),
-        "d36": GPTConfig(vocab_size=num_vocab, n_layer=36, n_head=20, n_embd=1280),
-        "d48": GPTConfig(vocab_size=num_vocab, n_layer=48, n_head=25, n_embd=1600),
+        "d24": GPTConfig(vocab_size=num_vocab, n_layer=24, n_head=16, n_embd=1024, window_size=args.window_size),
+        "d36": GPTConfig(vocab_size=num_vocab, n_layer=36, n_head=20, n_embd=1280, window_size=args.window_size),
+        "d48": GPTConfig(vocab_size=num_vocab, n_layer=48, n_head=25, n_embd=1600, window_size=args.window_size),
     }[args.model]
     model = GPT(model_config)
     model = model.train().cuda()
