@@ -30,6 +30,12 @@ fi
 cd $PROJDIR
 export WANDB_API_KEY=$(cat /auto/plzen1/home/kadlej27/.wandb_key 2>/dev/null)
 
+# Log GPU info and check for other processes using the GPU
+echo "=== GPU Info ==="
+nvidia-smi
+echo "=== Processes on GPU at job start ==="
+nvidia-smi --query-compute-apps=pid,used_gpu_memory,process_name --format=csv,noheader || echo "(no other processes)"
+
 torchrun --standalone --nproc_per_node=1 train_gpt2.py \
   --input_bin "data/fineweb10B/fineweb_train_*.bin" \
   --input_val_bin "data/fineweb10B/fineweb_val_*.bin" \
