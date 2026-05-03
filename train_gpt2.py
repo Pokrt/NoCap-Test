@@ -137,7 +137,7 @@ class GPTConfig:
 
 class GPT(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config, files=None):
         super().__init__()
         self.config = config
 
@@ -147,7 +147,22 @@ class GPT(nn.Module):
                 h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
             )
         )
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=True)
+        if files is not None:
+            with torch.no_grad():
+                frequencies = np.zeros(config.vocab_size)
+
+                for file in files:
+                    tokens = _load_data_shard(filename=file)
+                    value, counts = np.unique(tokens, return_counts=True)
+                    frequencies[value] += counts
+
+                etha = 1
+                norm_freq = (frequencies + etha) / np.sum(frequencies + etha)
+                log_freq_tensor = torch.tensor(np.log(norm_freq), dtype=torch.float32)
+                self.lm_head.bias.copy_(log_freq_tensor)
+
+
         self.transformer.wte.weight = (
             self.lm_head.weight
         )  # https://paperswithcode.com/method/weight-tying
@@ -383,6 +398,11 @@ if __name__ == "__main__":
         action="store_true",
         help="log to wandb",
     )
+    parser.add_argument(
+        "--log_freq_init",
+        action="store_true",
+        help="initialize lm_head bias with log token frequencies from training data",
+    )
     args = parser.parse_args()
 
     # args error checking and convenience variables
@@ -445,7 +465,8 @@ if __name__ == "__main__":
         "d36": GPTConfig(vocab_size=num_vocab, n_layer=36, n_head=20, n_embd=1280),
         "d48": GPTConfig(vocab_size=num_vocab, n_layer=48, n_head=25, n_embd=1600),
     }[args.model]
-    model = GPT(model_config)
+    train_files = train_loader.files if args.log_freq_init else None
+    model = GPT(model_config, files=train_files)
     model = model.train().cuda()
     if hasattr(config, "coordinate_descent_tuning"):
         config.coordinate_descent_tuning = True  # suggested by @Chillee

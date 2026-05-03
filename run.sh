@@ -13,4 +13,5 @@ torchrun --standalone --nproc_per_node=1 train_gpt2.py \
   --learning_rate 0.0018 \
   --warmup_iters 256 \
   --warmdown_iters 1024 \
-  --log_wandb
+  --log_wandb \
+  --log_freq_init
