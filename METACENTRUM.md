@@ -179,3 +179,71 @@ qdel <job_id>
 | Speedup | **1.45x faster** | baseline |
 
 The A100 achieves a slightly better val loss (3.3805 vs 3.3821) and completes training ~45% faster than the RTX 4090 reference.
+
+---
+
+## Submitting a new experiment
+
+Follow these steps every time you want to run a new experiment from your local machine.
+
+### 1. Create a branch
+
+```bash
+git checkout -b <experiment-name>   # e.g. log-freq-bias-init
+```
+
+### 2. Make your changes locally
+
+Edit `train_gpt2.py` and/or `run.sh`, then commit and push:
+
+```bash
+git add train_gpt2.py run.sh
+git commit -m "Short description of experiment"
+git push -u origin <experiment-name>
+```
+
+### 3. SSH to MetaCentrum interactively
+
+Non-interactive SSH cannot submit jobs (Kerberos ticket required):
+
+```bash
+ssh kadlej27@nympha.metacentrum.cz
+# Enter SSH password, then Kerberos password when prompted
+```
+
+### 4. Pull the branch and submit
+
+```bash
+cd ~/NoCap-Test
+git fetch
+git checkout <experiment-name>
+git pull
+qsub job.sh
+```
+
+To submit multiple runs for benchmarking across random GPUs:
+
+```bash
+qsub job.sh && qsub job.sh && qsub job.sh && qsub job.sh
+```
+
+### 5. Monitor
+
+```bash
+# Check job status (Q=queued, R=running, F=finished)
+qstat -u kadlej27
+
+# Watch live output
+tail -f ~/NoCap-Test/job_output.log
+
+# Check errors
+cat ~/NoCap-Test/job_error.log
+```
+
+Results are logged to wandb at `honza-kadlec-ctu-fee/benchmark_gpt2`.
+
+### Notes
+
+- If the cluster has local uncommitted changes on a branch, use `git stash` before `git checkout`
+- Jobs run from whatever branch is currently checked out in `~/NoCap-Test` at submission time
+- Each job gets a random GPU assigned — submit 3–4 runs for a fair benchmark average
