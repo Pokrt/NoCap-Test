@@ -77,6 +77,7 @@ class CausalSelfAttention(nn.Module):
         # output projection
         self.c_proj = nn.Linear(self.n_embd, self.n_embd, bias=False)
         self.rotary = Rotary(self.head_dim)
+        self.use_flash_attn = config.use_flash_attn
 
     def forward(self, x):
         B, T, C = (
@@ -91,7 +92,7 @@ class CausalSelfAttention(nn.Module):
         cos, sin = self.rotary(q)
         q = apply_rotary_emb(q, cos, sin)
         k = apply_rotary_emb(k, cos, sin)
-        if FLASH_ATTN_AVAILABLE and q.is_cuda:
+        if self.use_flash_attn and FLASH_ATTN_AVAILABLE and q.is_cuda:
             # flash_attn_func expects (B, T, H, D) directly — no transposes needed
             y = flash_attn_func(q, k, v, causal=True)
             y = y.contiguous().view(B, T, C)
@@ -145,6 +146,7 @@ class GPTConfig:
     n_layer: int = 12
     n_head: int = 12
     n_embd: int = 768
+    use_flash_attn: bool = False
 
 
 class GPT(nn.Module):
@@ -395,6 +397,11 @@ if __name__ == "__main__":
         action="store_true",
         help="log to wandb",
     )
+    parser.add_argument(
+        "--flash_attn",
+        action="store_true",
+        help="use flash attention (requires flash-attn package)",
+    )
     args = parser.parse_args()
 
     # args error checking and convenience variables
@@ -457,6 +464,7 @@ if __name__ == "__main__":
         "d36": GPTConfig(vocab_size=num_vocab, n_layer=36, n_head=20, n_embd=1280),
         "d48": GPTConfig(vocab_size=num_vocab, n_layer=48, n_head=25, n_embd=1600),
     }[args.model]
+    model_config.use_flash_attn = args.flash_attn
     model = GPT(model_config)
     model = model.train().cuda()
     if hasattr(config, "coordinate_descent_tuning"):
