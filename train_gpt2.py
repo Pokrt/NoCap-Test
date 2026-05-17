@@ -407,6 +407,11 @@ if __name__ == "__main__":
     # args error checking and convenience variables
     B, T = args.batch_size, args.sequence_length
     assert args.model in {"d12", "d24", "d36", "d48"}
+    if args.flash_attn and not FLASH_ATTN_AVAILABLE:
+        raise RuntimeError(
+            "--flash_attn was requested but the flash-attn package is not installed. "
+            "Install it with: pip install flash-attn --no-build-isolation"
+        )
     # set up DDP (distributed data parallel). torchrun sets this env variable
     # use of DDP atm demands CUDA, we set the device appropriately according to rank
     assert torch.cuda.is_available(), "for now i think we need CUDA for DDP"
