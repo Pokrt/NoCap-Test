@@ -14,13 +14,6 @@ import torch._inductor.config as config
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 
-try:
-    from flash_attn import flash_attn_func
-    FLASH_ATTN_AVAILABLE = True
-except ImportError:
-    flash_attn_func = None
-    FLASH_ATTN_AVAILABLE = False
-
 with open(sys.argv[0]) as f:
     code = f.read()
 
@@ -92,17 +85,19 @@ class CausalSelfAttention(nn.Module):
         cos, sin = self.rotary(q)
         q = apply_rotary_emb(q, cos, sin)
         k = apply_rotary_emb(k, cos, sin)
-        if self.use_flash_attn and FLASH_ATTN_AVAILABLE and q.is_cuda:
-            # flash_attn_func expects (B, T, H, D) directly — no transposes needed
-            y = flash_attn_func(q, k, v, causal=True)
-            y = y.contiguous().view(B, T, C)
+        if self.use_flash_attn:
+            # Force PyTorch's built-in flash attention backend (no extra package needed)
+            with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=False, enable_mem_efficient=False):
+                y = F.scaled_dot_product_attention(
+                    q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), is_causal=True
+                )
         else:
             y = F.scaled_dot_product_attention(
                 q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), is_causal=True
             )
-            y = (
-                y.transpose(1, 2).contiguous().view(B, T, C)
-            )  # re-assemble all head outputs side by side
+        y = (
+            y.transpose(1, 2).contiguous().view(B, T, C)
+        )  # re-assemble all head outputs side by side
         # output projection
         y = self.c_proj(y)
         return y
@@ -407,11 +402,6 @@ if __name__ == "__main__":
     # args error checking and convenience variables
     B, T = args.batch_size, args.sequence_length
     assert args.model in {"d12", "d24", "d36", "d48"}
-    if args.flash_attn and not FLASH_ATTN_AVAILABLE:
-        raise RuntimeError(
-            "--flash_attn was requested but the flash-attn package is not installed. "
-            "Install it with: pip install flash-attn --no-build-isolation"
-        )
     # set up DDP (distributed data parallel). torchrun sets this env variable
     # use of DDP atm demands CUDA, we set the device appropriately according to rank
     assert torch.cuda.is_available(), "for now i think we need CUDA for DDP"
