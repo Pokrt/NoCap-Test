@@ -1,0 +1,84 @@
+\begin{thebibliography}{12}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Beltagy et~al.(2020)Beltagy, Peters, and
+  Cohan}]{beltagy2020longformer}
+Iz~Beltagy, Matthew~E Peters, and Arman Cohan. 2020.
+\newblock \href {https://arxiv.org/abs/2004.05150} {{Longformer}: The
+  long-document transformer}.
+\newblock \emph{arXiv preprint arXiv:2004.05150}.
+
+\bibitem[{Biewald(2020)}]{biewald2020wandb}
+Lukas Biewald. 2020.
+\newblock Experiment tracking with weights and biases.
+\newblock \url{https://www.wandb.com}.
+
+\bibitem[{{BottleCapAI}(2025)}]{bottlecap2025}
+{BottleCapAI}. 2025.
+\newblock The {BottleCapAI} {GPT-2} efficiency benchmark.
+\newblock \url{https://github.com/BottleCapAI/NoCap-Test}.
+
+\bibitem[{Dao(2024)}]{dao2023flashattention2}
+Tri Dao. 2024.
+\newblock \href {https://arxiv.org/abs/2307.08691} {{FlashAttention-2}: Faster
+  attention with better parallelism and work partitioning}.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}.
+
+\bibitem[{Dao et~al.(2022)Dao, Fu, Ermon, Rudra, and
+  R{\'e}}]{dao2022flashattention}
+Tri Dao, Daniel~Y Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}. 2022.
+\newblock \href {https://arxiv.org/abs/2205.14135} {{FlashAttention}: Fast and
+  memory-efficient exact attention with {IO}-awareness}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\bibitem[{Jiang et~al.(2023)Jiang, Sablayrolles, Mensch
+  et~al.}]{jiang2023mistral}
+Albert~Q Jiang, Alexandre Sablayrolles, Arthur Mensch, and 1 others. 2023.
+\newblock \href {https://arxiv.org/abs/2310.06825} {Mistral 7{B}}.
+\newblock \emph{arXiv preprint arXiv:2310.06825}.
+
+\bibitem[{Jordan et~al.(2024)}]{jordan2024moddednanogpt}
+Keller Jordan and 1 others. 2024.
+\newblock modded-nanogpt: {NanoGPT} speedrunning.
+\newblock \url{https://github.com/KellerJordan/modded-nanogpt}.
+
+\bibitem[{Loshchilov and Hutter(2019)}]{loshchilov2019adamw}
+Ilya Loshchilov and Frank Hutter. 2019.
+\newblock \href {https://arxiv.org/abs/1711.05101} {Decoupled weight decay
+  regularization}.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}.
+
+\bibitem[{Penedo et~al.(2024)Penedo, Kydl{\'\i}{\v{c}}ek, Ben~Allal, Lozhkov,
+  Mitchell, Raffel, Von~Werra, and Wolf}]{penedo2024fineweb}
+Guilherme Penedo, Hynek Kydl{\'\i}{\v{c}}ek, Loubna Ben~Allal, Anton Lozhkov,
+  Margaret Mitchell, Colin Raffel, Leandro Von~Werra, and Thomas Wolf. 2024.
+\newblock \href {https://arxiv.org/abs/2406.17557} {The {FineWeb} datasets:
+  Decanting the web for the finest text data at scale}.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS),
+  Datasets and Benchmarks Track}.
+
+\bibitem[{Press and Wolf(2017)}]{press2017tying}
+Ofir Press and Lior Wolf. 2017.
+\newblock \href {https://arxiv.org/abs/1608.05859} {Using the output embedding
+  to improve language models}.
+\newblock In \emph{Proceedings of the European Chapter of the Association for
+  Computational Linguistics (EACL)}.
+
+\bibitem[{Su et~al.(2021)Su, Lu, Pan, Murtadha, Wen, and Liu}]{su2021roformer}
+Jianlin Su, Yu~Lu, Shengfeng Pan, Ahmed Murtadha, Bo~Wen, and Yunfeng Liu.
+  2021.
+\newblock \href {https://arxiv.org/abs/2104.09864} {{RoFormer}: Enhanced
+  transformer with rotary position embedding}.
+\newblock \emph{arXiv preprint arXiv:2104.09864}.
+
+\bibitem[{Zhang and Sennrich(2019)}]{zhang2019rmsnorm}
+Biao Zhang and Rico Sennrich. 2019.
+\newblock \href {https://arxiv.org/abs/1910.07467} {Root mean square layer
+  normalization}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}.
+
+\end{thebibliography}

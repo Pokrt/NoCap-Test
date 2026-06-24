@@ -3,3 +3,4 @@ pylog124M/
 logs/
 wandb/
 job.sh
+conversations/
