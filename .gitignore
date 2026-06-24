@@ -4,3 +4,4 @@ logs/
 wandb/
 job.sh
 conversations/
+img/fig_*
